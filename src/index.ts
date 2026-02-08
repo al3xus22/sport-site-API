@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express, {Request, Response, Express} from 'express';
 import cors from 'cors';
+import {checkConnection} from './config/database';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ const createApp = (): Express => {
   return app;
 };
 
+//Routes
 const initializeRoutes = (app: Express): void => {
   app.get('api/health', async (_req: Request, res: Response<HealthResponse>) => {
     try {
@@ -58,6 +60,7 @@ const initializeRoutes = (app: Express): void => {
   })
 };
 
+//Errors init
 const initializeErrorHandling = (app: Express): void => {
   app.use('*', (req: Request, res: Response<ErrorResponse>) => {
     res.status(404).json({
@@ -76,6 +79,7 @@ const initializeErrorHandling = (app: Express): void => {
   });
 };
 
+//Start
 const startServer = (app: Express): void => {
   const PORT = process.env.PORT || 5000;
 
@@ -88,7 +92,11 @@ const startServer = (app: Express): void => {
 const initializeApp = async (): Promise<void> => {
   try {
     console.log('🔧 Инициализация приложения...');
+    const dbConnected = await checkConnection();
 
+    if (!dbConnected) {
+      console.log('⚠️  Предупреждение: Не удалось подключиться к БД');
+    }
     const app = createApp();
     initializeRoutes(app);
     initializeErrorHandling(app);
